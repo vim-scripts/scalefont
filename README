@@ -1,0 +1,8 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1030
+
+Sometimes you want to change the font size without changing the window 
+geometry. This plugin tries to set the 'guifont', 'columns', and 'lines' to 
+appropriate values in order to achieve this goal. You can define modes to 
+quickly switch between your favourite gui configuration: fonts, window 
+position and size, guioption settings etc.
+
