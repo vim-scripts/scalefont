@@ -1,35 +1,37 @@
-*scalefont.txt* Set the Font (Size) While Maintaining the Window Size and Position
+*scalefont.txt* Switch between your favourite font/gui settings
 Thomas Link
 
-Sometimes you want to change the font size without modifying the window 
+Sometimes you want to change the font size without changing the window 
 geometry. This plugin tries to set the 'guifont', 'columns', and 'lines' to 
-appropriate values in order to achieve this goal. You have to set 
-g:scaleFontSize and g:scaleFont before using this plugin.
+appropriate values in order to achieve this goal. You can define modes to 
+quickly switch between your favourite gui configuration: fonts, window 
+position and size, guioption settings etc.
+
+You have to set g:scaleFontSize and g:scaleFont before using this plugin. It 
+might also be necessary to check whether the ScaleFontMaximizeWindow() 
+function is functional on your system.
 
 
 Install~
+It is important to correctly configure the plugin (see #3) because it will set 
+the font and the window size when being loaded unless the 
+g:scaleFontDontSetOnStartup variable was defined.
+
+#1
 Extract scalefont.zip to your local vimfiles directory (see also 
 |add-global-plugin|) so that you get: >
 
 Linux etc.: >
     $HOME/.vim/
 Windows: >
-    $VIM/vimfiles/
+    .../vimfiles/
 
         doc/  etc/ plugin/
 
-These directories are used for installing user-specific plugins. It's possible 
-that these directories already exist and are populated with other plugins -- 
-in which case you probably already knew this. ;-)
+#2
+Then run :helptags on the doc subdirectory.
 
-Then run >
-
-Linux etc.: >
-    :helptags $HOME/.vim/doc
-
-Windows: >
-    :helptags $VIM/vimfiles/doc
-
+#3
 Add the following settings to your |vimrc| file:
 
 Set g:scaleFontSize, g:scaleFontWidth, and g:scaleFont according to your 
@@ -44,18 +46,18 @@ Examples: >
   
 Unix: >
     let g:scaleFont = "-misc-fixed-medium-r-semicondensed-*-#{SIZE}-120-*-*-c-*-iso8859-15"
-    fun! ScaleFontMaximizeWindow()
-        " Maximize the window or do nothing
-    endfun
 
 Windows: >
     let g:scaleFont = "Lucida_Console:h#{SIZE}:cANSI""
 
-You could also add something like this to your |vimrc| file: >
+You could also add something like this: >
 
     amenu &View.-SepViewScaleFont- :
     amenu &View.Font\ Size:\ &+ :ScaleFontBigger<cr>
     amenu &View.Font\ Size:\ &- :ScaleFontSmaller<cr>
+
+#4
+Restart vim.
 
 
 Uninstall~
@@ -66,12 +68,19 @@ commands: >
     rm -i `cat etc/scalefont.lst`
 
 
+Usage~
+The :ScaleFontBigger and :ScaleFontSmaller give you a user experience as some 
+might know it from using a Psion palmtop. For other purposes than shifting the 
+font size, you probably want to define a mode (see below) and the set this 
+mode by calling the :ScaleFont command.
+
+
 Commands~
 :ScaleFontBigger
 :ScaleFontSmaller
+:ScaleFont MODE
 :ScaleFontMode MODE
 :ScaleFontSetLinesCols LINES COLS
-
 
 Functions~
 ScaleFont(delta)
@@ -79,13 +88,17 @@ ScaleFontSetSize(size, width)
 ScaleFontSetLinesCols(setIt, lines, cols)
 ScaleFontMaximizeWindow()
     - on non-Windows systems this one should be re-defined by the user
-
+ScaleFontBuildMenu()
+ScaleFontSaveOptions(...)
+    - can be used to save the default values for vim options in 
+      g:scaleFontExec_0
 
 Variables~
 g:scaleFontSize
 g:scaleFontWidth
 g:scaleFont
-
+g:scaleFontMenuPrefix
+    - if set to "", no menu will be built
 
                                                     *scalefont-modes*
 Modes~
@@ -100,8 +113,12 @@ and __optionally__:
     g:scaleFontLines_{MODE} :: the number of lines for this mode (see 'lines')
     g:scaleFontCols_{MODE}  :: the number of columns for this mode (see 'co')
     g:scaleFontWinX_{MODE}  :: either a number (argument to |:winpos|) or the 
-        name of a mode the WinX position of which will be used instead
+      name of a mode the WinX position of which will be used instead (0 to 
+      reset the position to the startup value)
     g:scaleFontWinY_{MODE}  :: same as above
+    g:scaleFontExec_{MODE}  :: Execute some vim code after switching modes 
+      (e.g., for switching to a full screen mode with out menu, toolbar, and 
+      scrollbars).
 
 If either g:scaleFontLines_{MODE} or g:scaleFontCols_{MODE} is -1, the window 
 will be maximized.
@@ -113,34 +130,20 @@ User defined modes should be listed in g:scaleFontModes, e.g. >
 
     let g:scaleFontModes = "mode1\nmode2"
 
-Predefined modes (g:scaleFontWidth_{MODE} might require some modifications):
+Predefined modes (g:scaleFontWidth_{MODE} might require some adjustments):
 
-    Normal    :: standard mode
+    Normal     :: standard mode
     NormalWide, NormalWideTop      :: a wide but "short" window (at the top)
     NormalNarrow, NormalNarrowLeft :: a narrow but "long" window (at the left)
-    Large     :: +6
-    LargeMax  :: like Large but maximizes the window
-    large     :: +4
-    largeMax  :: like large but maximizes the window
-    big       :: +2
-    bigMax    ;; like big but maximizes the window
-    small     :: -2
-    tiny      :: -4
-
-
-                                                    *scalefont-history*
-Change History~
-    0.1 :: Initial release
-    0.2 :: Take care of whether the font size is increased or decreased; 
-    command line completion for ScaleFontMode; ability to define the desired 
-    lines and cols parameters per mode (if one of these variables is -1, the 
-    window will be maximized; on non-Windows systems you have to define 
-    ScaleFontMaximizeWindow() first); new standard modes "largeMax" and 
-    "LargeMax" (maximize the window)
-    0.3 :: New standard modes: NormalMax, NormalNarrowLeft, NormalWideTop, 
-    bigMax; :ScaleFont as an alias to :ScaleFontMode; we can now set the 
-    window/frame position too (e.g.  NormalNarrowLeft and NormalWideTop); 
-    removed mode "0" from the mode list
+    NormalFull :: standard mode without the menu bar etc.
+    Large      :: +6
+    LargeMax   :: like Large but maximizes the window
+    large      :: +4
+    largeMax   :: like large but maximizes the window
+    big        :: +2
+    bigMax     :: like big but maximizes the window
+    small      :: -2
+    tiny       :: -4
 
 
 vim:ft=help:tw=78
