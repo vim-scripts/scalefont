@@ -1,4 +1,4 @@
-*scalefont.txt* Change/Set the Font (Size) While Trying to Maintain Window Geometry
+*scalefont.txt* Set the Font (Size) While Maintaining the Window Size and Position
 Thomas Link
 
 Sometimes you want to change the font size without modifying the window 
@@ -99,6 +99,9 @@ and __optionally__:
 
     g:scaleFontLines_{MODE} :: the number of lines for this mode (see 'lines')
     g:scaleFontCols_{MODE}  :: the number of columns for this mode (see 'co')
+    g:scaleFontWinX_{MODE}  :: either a number (argument to |:winpos|) or the 
+        name of a mode the WinX position of which will be used instead
+    g:scaleFontWinY_{MODE}  :: same as above
 
 If either g:scaleFontLines_{MODE} or g:scaleFontCols_{MODE} is -1, the window 
 will be maximized.
@@ -112,12 +115,15 @@ User defined modes should be listed in g:scaleFontModes, e.g. >
 
 Predefined modes (g:scaleFontWidth_{MODE} might require some modifications):
 
-    0, Normal :: standard mode
+    Normal    :: standard mode
+    NormalWide, NormalWideTop      :: a wide but "short" window (at the top)
+    NormalNarrow, NormalNarrowLeft :: a narrow but "long" window (at the left)
     Large     :: +6
     LargeMax  :: like Large but maximizes the window
     large     :: +4
     largeMax  :: like large but maximizes the window
     big       :: +2
+    bigMax    ;; like big but maximizes the window
     small     :: -2
     tiny      :: -4
 
@@ -131,6 +137,10 @@ Change History~
     window will be maximized; on non-Windows systems you have to define 
     ScaleFontMaximizeWindow() first); new standard modes "largeMax" and 
     "LargeMax" (maximize the window)
+    0.3 :: New standard modes: NormalMax, NormalNarrowLeft, NormalWideTop, 
+    bigMax; :ScaleFont as an alias to :ScaleFontMode; we can now set the 
+    window/frame position too (e.g.  NormalNarrowLeft and NormalWideTop); 
+    removed mode "0" from the mode list
 
 
-vim:ft=help:fdm=expr:tw=78
+vim:ft=help:tw=78
