@@ -1,0 +1,136 @@
+*scalefont.txt* Change/Set the Font (Size) While Trying to Maintain Window Geometry
+Thomas Link
+
+Sometimes you want to change the font size without modifying the window 
+geometry. This plugin tries to set the 'guifont', 'columns', and 'lines' to 
+appropriate values in order to achieve this goal. You have to set 
+g:scaleFontSize and g:scaleFont before using this plugin.
+
+
+Install~
+Extract scalefont.zip to your local vimfiles directory (see also 
+|add-global-plugin|) so that you get: >
+
+Linux etc.: >
+    $HOME/.vim/
+Windows: >
+    $VIM/vimfiles/
+
+        doc/  etc/ plugin/
+
+These directories are used for installing user-specific plugins. It's possible 
+that these directories already exist and are populated with other plugins -- 
+in which case you probably already knew this. ;-)
+
+Then run >
+
+Linux etc.: >
+    :helptags $HOME/.vim/doc
+
+Windows: >
+    :helptags $VIM/vimfiles/doc
+
+Add the following settings to your |vimrc| file:
+
+Set g:scaleFontSize, g:scaleFontWidth, and g:scaleFont according to your 
+likings. "#{SIZE}" and "#{WIDTH}" will be replaced with the appropriate 
+values. On non-Windows systems you also have to define 
+ScaleFontMaximizeWindow().
+
+Examples: >
+
+    let g:scaleFontSize  = 11
+    let g:scaleFontWidth = 8
+  
+Unix: >
+    let g:scaleFont = "-misc-fixed-medium-r-semicondensed-*-#{SIZE}-120-*-*-c-*-iso8859-15"
+    fun! ScaleFontMaximizeWindow()
+        " Maximize the window or do nothing
+    endfun
+
+Windows: >
+    let g:scaleFont = "Lucida_Console:h#{SIZE}:cANSI""
+
+You could also add something like this to your |vimrc| file: >
+
+    amenu &View.-SepViewScaleFont- :
+    amenu &View.Font\ Size:\ &+ :ScaleFontBigger<cr>
+    amenu &View.Font\ Size:\ &- :ScaleFontSmaller<cr>
+
+
+Uninstall~
+If you use the bash shell or similar, you can uninstall scalefont using these 
+commands: >
+
+    cd $HOME/.vim/
+    rm -i `cat etc/scalefont.lst`
+
+
+Commands~
+:ScaleFontBigger
+:ScaleFontSmaller
+:ScaleFontMode MODE
+:ScaleFontSetLinesCols LINES COLS
+
+
+Functions~
+ScaleFont(delta)
+ScaleFontSetSize(size, width)
+ScaleFontSetLinesCols(setIt, lines, cols)
+ScaleFontMaximizeWindow()
+    - on non-Windows systems this one should be re-defined by the user
+
+
+Variables~
+g:scaleFontSize
+g:scaleFontWidth
+g:scaleFont
+
+
+                                                    *scalefont-modes*
+Modes~
+For each mode, you have to define these variables:
+
+    g:scaleFontSize_{MODE}  :: the font size
+    g:scaleFontWidth_{MODE} :: the font width
+    g:scaleFont_{MODE}      :: the font
+
+and __optionally__:
+
+    g:scaleFontLines_{MODE} :: the number of lines for this mode (see 'lines')
+    g:scaleFontCols_{MODE}  :: the number of columns for this mode (see 'co')
+
+If either g:scaleFontLines_{MODE} or g:scaleFontCols_{MODE} is -1, the window 
+will be maximized.
+
+If either g:scaleFontLines_{MODE} or g:scaleFontCols_{MODE} is 0, the window 
+will be reset to the orignal geometry.
+
+User defined modes should be listed in g:scaleFontModes, e.g. >
+
+    let g:scaleFontModes = "mode1\nmode2"
+
+Predefined modes (g:scaleFontWidth_{MODE} might require some modifications):
+
+    0, Normal :: standard mode
+    Large     :: +6
+    LargeMax  :: like Large but maximizes the window
+    large     :: +4
+    largeMax  :: like large but maximizes the window
+    big       :: +2
+    small     :: -2
+    tiny      :: -4
+
+
+                                                    *scalefont-history*
+Change History~
+    0.1 :: Initial release
+    0.2 :: Take care of whether the font size is increased or decreased; 
+    command line completion for ScaleFontMode; ability to define the desired 
+    lines and cols parameters per mode (if one of these variables is -1, the 
+    window will be maximized; on non-Windows systems you have to define 
+    ScaleFontMaximizeWindow() first); new standard modes "largeMax" and 
+    "LargeMax" (maximize the window)
+
+
+vim:ft=help:fdm=expr:tw=78
