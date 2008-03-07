@@ -1,32 +1,53 @@
 " vim: ff=unix
 " scalefont.vim -- Change the font size while maintaining the window geometry
-" @Author:      Thomas Link (samul AT web.de)
+" @Author:      Thomas Link (micathom AT gmail com)
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
 " @Created:     18-Mai-2004.
-" @Last Change: 03-Apr-2005.
-" @Revision:    1.1.55
+" @Last Change: 2008-03-07.
+" @Revision:    1.2.230
 " 
-" vimscript #1030
+" GetLatestVimScripts: 1030 1 scalefont.vim
 
-if &cp || exists("s:loaded_scalefont")
+if &cp || exists("loaded_scalefont") || !has("gui_running") "{{{2
     finish
 endif
-let s:loaded_scalefont = 101
+let loaded_scalefont = 102
 
-if !exists("g:scaleFontSize") || !exists("g:scaleFont")
-    echomsg "ScaleFont: Please set g:scaleFontSize and g:scaleFont. Abort loading!"
+
+" Configuration {{{1
+
+if !exists("g:scaleFontSize") || !exists("g:scaleFont") "{{{2
+    echomsg "ScaleFont: Please set g:scaleFont, g:scaleFontSize (g:scaleFontWidth) in ~/.vimrc."
+    if has("gui_gtk2")
+        let g:scaleFont='Luxi\ Mono\ #{SIZE}'
+    elseif has("x11")
+        " Also for GTK 1
+        let g:scaleFont='*-lucidatypewriter-medium-r-normal-*-#{SIZE}-180-*-*-m-*-*'
+    elseif has("gui_win32")
+        let g:scaleFont='Lucida_Sans_Typewriter:h#{SIZE}:cANSI'
+    endif
+    let g:scaleFontSize=12
+    let g:scaleFontWidth=9
+    echomsg 'ScaleFont: Proposed setting: let g:scaleFont='. string(g:scaleFont)
+    echomsg 'ScaleFont: Proposed setting: let g:scaleFontSize='. g:scaleFontSize
+    echomsg 'ScaleFont: Proposed setting: let g:scaleFontWidth='. g:scaleFontWidth
+    echomsg "ScaleFont: Abort loading!"
     finish
 endif
 
-if !exists("g:scaleFontWidth")
+if !exists("g:scaleFontWidth") "{{{2
     let g:scaleFontWidth = g:scaleFontSize
 endif
 
-if !exists("g:scaleFontMenuPrefix")
-    let g:scaleFontMenuPrefix = "Plugin."
+if !exists("g:scaleFontMenu") "{{{2
+    let g:scaleFontMenu = "Plugin.ScaleFont"
 endif
 
-fun! ScaleFontSaveOptions(...)
+if !exists("g:scaleFontAlwaysResetGuioptions") "{{{2
+    let g:scaleFontAlwaysResetGuioptions = 1
+endif
+
+fun! ScaleFontSaveOptions(...) "{{{3
     let i = 1
     let acc = ''
     while i <= a:0
@@ -44,6 +65,33 @@ fun! ScaleFontSaveOptions(...)
     return acc
 endf
 
+let g:scaleFontConf = {}
+
+function! ScaleFontGet(mode, ...) "{{{3
+    let key = a:0 >= 1 ? a:1 : ''
+    if key == 'Font' && exists('g:scaleFont_'. a:mode)
+        return g:scaleFont_{a:mode}
+    elseif exists('g:scaleFont'. key .'_'. a:mode)
+        return g:scaleFont{key}_{a:mode}
+    elseif has_key(g:scaleFontConf, a:mode)
+        let o = g:scaleFontConf[a:mode]
+        if empty(key)
+            return o
+        elseif has_key(o, key)
+            return o[key]
+        endif
+    endif
+    return a:0 >= 2 ? a:2 : ''
+endf
+
+function! ScaleFontSet(mode, opts) "{{{3
+    if has_key(g:scaleFontConf, a:mode)
+        call extend(g:scaleFontConf[a:mode], a:opts)
+    else
+        let g:scaleFontConf[a:mode] = a:opts
+    end
+endf
+
 let g:scaleFontSize_0  = g:scaleFontSize
 let g:scaleFontWidth_0 = g:scaleFontWidth
 let g:scaleFont_0      = g:scaleFont
@@ -52,135 +100,182 @@ let g:scaleFontCols_0  = &co
 let g:scaleFontWinX_0  = -1
 let g:scaleFontWinY_0  = -1
 " if !exists("g:scaleFontExec_0") | let g:scaleFontExec_0 = 'set guioptions='. s:scaleFontGuioptions .'| set laststatus='. s:lastStatus | endif
-if !exists("g:scaleFontExec_0") | let g:scaleFontExec_0 = ScaleFontSaveOptions('guioptions', 'laststatus') | endif
-
-let g:scaleFontSize_Normal  = g:scaleFontSize
-let g:scaleFontWidth_Normal = g:scaleFontWidth
-let g:scaleFont_Normal      = g:scaleFont
-let g:scaleFontLines_Normal = &lines
-let g:scaleFontCols_Normal  = &co
-let g:scaleFontWinX_Normal  = 0
-let g:scaleFontWinY_Normal  = 0
-
-let g:scaleFontSize_NormalWide  = g:scaleFontSize
-let g:scaleFontWidth_NormalWide = g:scaleFontWidth
-let g:scaleFont_NormalWide      = g:scaleFont
-let g:scaleFontLines_NormalWide = &lines / 2
-let g:scaleFontCols_NormalWide  = &co * 2
-
-let g:scaleFontSize_NormalWideTop  = g:scaleFontSize_NormalWide
-let g:scaleFontWidth_NormalWideTop = g:scaleFontWidth_NormalWide
-let g:scaleFont_NormalWideTop      = g:scaleFont_NormalWide
-let g:scaleFontLines_NormalWideTop = g:scaleFontLines_NormalWide
-let g:scaleFontCols_NormalWideTop  = g:scaleFontCols_NormalWide
-let g:scaleFontWinX_NormalWideTop  = 1
-let g:scaleFontWinY_NormalWideTop  = 1
-
-let g:scaleFontSize_NormalNarrow  = g:scaleFontSize
-let g:scaleFontWidth_NormalNarrow = g:scaleFontWidth
-let g:scaleFont_NormalNarrow      = g:scaleFont
-let g:scaleFontLines_NormalNarrow = &lines
-let g:scaleFontCols_NormalNarrow  = &co / 2
-
-let g:scaleFontSize_NormalNarrowLeft  = g:scaleFontSize_NormalNarrow
-let g:scaleFontWidth_NormalNarrowLeft = g:scaleFontWidth_NormalNarrow
-let g:scaleFont_NormalNarrowLeft      = g:scaleFont_NormalNarrow
-let g:scaleFontLines_NormalNarrowLeft = g:scaleFontLines_NormalNarrow
-let g:scaleFontCols_NormalNarrowLeft  = g:scaleFontCols_NormalNarrow
-let g:scaleFontWinX_NormalNarrowLeft  = 1
-let g:scaleFontWinY_NormalNarrowLeft  = 1
-
-let g:scaleFontSize_NormalMax  = g:scaleFontSize
-let g:scaleFontWidth_NormalMax = g:scaleFontWidth
-let g:scaleFont_NormalMax      = g:scaleFont
-let g:scaleFontLines_NormalMax = -1
-let g:scaleFontCols_NormalMax  = -1
-
-let g:scaleFontSize_NormalFull  = g:scaleFontSize
-let g:scaleFontWidth_NormalFull = g:scaleFontWidth
-let g:scaleFont_NormalFull      = g:scaleFont
-let g:scaleFontLines_NormalFull = -1
-let g:scaleFontCols_NormalFull  = -1
-let g:scaleFontExec_NormalFull  = 'let &guioptions=substitute(&guioptions, "\\C[mrlbT]", "", "g")|set laststatus=0'
-
-let g:scaleFontSize_big  = g:scaleFontSize  + 2
-let g:scaleFontWidth_big = g:scaleFontWidth + 1
-let g:scaleFont_big      = g:scaleFont
-let g:scaleFontLines_big = 0
-let g:scaleFontCols_big  = 0
-
-let g:scaleFontSize_bigMax  = g:scaleFontSize_big
-let g:scaleFontWidth_bigMax = g:scaleFontWidth_big
-let g:scaleFont_bigMax      = g:scaleFont_big
-let g:scaleFontLines_bigMax = -1
-let g:scaleFontCols_bigMax  = -1
-
-let g:scaleFontSize_large  = g:scaleFontSize  + 4
-let g:scaleFontWidth_large = g:scaleFontWidth + 3
-let g:scaleFont_large      = g:scaleFont
-let g:scaleFontLines_large = 0
-let g:scaleFontCols_large  = 0
-
-let g:scaleFontSize_largeMax  = g:scaleFontSize_large
-let g:scaleFontWidth_largeMax = g:scaleFontWidth_large
-let g:scaleFont_largeMax      = g:scaleFont_large
-let g:scaleFontLines_largeMax = -1
-let g:scaleFontCols_largeMax  = -1
-
-let g:scaleFontSize_Large  = g:scaleFontSize  + 6
-let g:scaleFontWidth_Large = g:scaleFontWidth + 5
-let g:scaleFont_Large      = g:scaleFont
-let g:scaleFontLines_Large = 0
-let g:scaleFontCols_Large  = 0
-
-let g:scaleFontSize_LargeMax  = g:scaleFontSize_Large
-let g:scaleFontWidth_LargeMax = g:scaleFontWidth_Large
-let g:scaleFont_LargeMax      = g:scaleFont_Large
-let g:scaleFontLines_LargeMax = -1
-let g:scaleFontCols_LargeMax  = -1
-
-let g:scaleFontSize_Small  = g:scaleFontSize  - 1
-let g:scaleFontWidth_Small = g:scaleFontWidth - 1
-let g:scaleFont_Small      = g:scaleFont
-let g:scaleFontLines_Small = 0
-let g:scaleFontCols_Small  = 0
-
-let g:scaleFontSize_SmallMax  = g:scaleFontSize_Small
-let g:scaleFontWidth_SmallMax = g:scaleFontWidth_Small
-let g:scaleFont_SmallMax      = g:scaleFont_Small
-let g:scaleFontLines_SmallMax = -1
-let g:scaleFontCols_SmallMax  = -1
-
-let g:scaleFontSize_small  = g:scaleFontSize  - 2
-let g:scaleFontWidth_small = g:scaleFontWidth - 1
-let g:scaleFont_small      = g:scaleFont
-let g:scaleFontLines_small = 0
-let g:scaleFontCols_small  = 0
-
-let g:scaleFontSize_smallMax  = g:scaleFontSize_small
-let g:scaleFontWidth_smallMax = g:scaleFontWidth_small
-let g:scaleFont_smallMax      = g:scaleFont_small
-let g:scaleFontLines_smallMax = -1
-let g:scaleFontCols_smallMax  = -1
-
-let g:scaleFontSize_tiny  = g:scaleFontSize  - 4
-let g:scaleFontWidth_tiny = g:scaleFontWidth - 3
-let g:scaleFont_tiny      = g:scaleFont
-let g:scaleFontLines_tiny = 0
-let g:scaleFontCols_tiny  = 0
-
-let g:scaleFontSize_tinyMax  = g:scaleFontSize_tiny
-let g:scaleFontWidth_tinyMax = g:scaleFontWidth_tiny
-let g:scaleFont_tinyMax      = g:scaleFont_tiny
-let g:scaleFontLines_tinyMax = -1
-let g:scaleFontCols_tinyMax  = -1
+if !exists("g:scaleFontExec_0") | let g:scaleFontExec_0 = ScaleFontSaveOptions('guioptions', 'laststatus', 'fdc') | endif "{{{2
 
 
-" user defined modes should be indexed in g:scaleFontModes
-let s:scaleFontModes = "Normal\nNormalMax\nNormalFull\n".
-            \ "NormalWide\nNormalWideTop\nNormalNarrow\nNormalNarrowLeft\n".
-            \ "big\nbigMax\nlarge\nlargeMax\nLarge\nLargeMax\n".
-            \ "Small\nSmallMax\nsmall\nsmallMax\ntiny\ntinyMax"
+
+" Modes {{{1
+
+call ScaleFontSet('Normal', {
+            \ 'Size': g:scaleFontSize,
+            \ 'Width': g:scaleFontWidth,
+            \ 'Font': g:scaleFont,
+            \ 'Lines': &lines,
+            \ 'Cols': &co,
+            \ 'WinX': 0,
+            \ 'WinY': 0,
+            \ 'MaintainFrameSize': 1,
+            \ })
+
+call ScaleFontSet('NormalWide', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('NormalWide', {
+            \ 'Lines': &lines / 2,
+            \ 'Cols': &co * 2,
+            \ })
+
+call ScaleFontSet('NormalWideTop', copy(ScaleFontGet('NormalWide')))
+call ScaleFontSet('NormalWide', {
+            \ 'WinX': 1,
+            \ 'WinY': 1,
+            \ })
+
+call ScaleFontSet('NormalNarrow', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('NormalNarrow', {
+            \ 'Cols': &co / 2,
+            \ })
+
+call ScaleFontSet('NormalNarrowLeft', copy(ScaleFontGet('NormalNarrow')))
+call ScaleFontSet('NormalNarrowLeft', {
+            \ 'WinX': 1,
+            \ 'WinY': 1,
+            \ })
+
+call ScaleFontSet('NormalMax', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('NormalMax', {
+            \ 'Lines': -1,
+            \ 'Cols': -1,
+            \ })
+
+call ScaleFontSet('NormalFull', copy(ScaleFontGet('NormalMax')))
+call ScaleFontSet('NormalFull', {
+            \ 'Exec': 'let &guioptions=substitute(&guioptions, "\\C[mrlRLbT]", "", "g")|set fdc=0|set laststatus=0',
+            \ })
+
+call ScaleFontSet('NormalSingle', copy(ScaleFontGet('NormalMax')))
+call ScaleFontSet('NormalSingle', {
+            \ 'Exec': 'let &guioptions=substitute(&guioptions, "\\C[rlRLbT]", "", "g")|set fdc=12|set laststatus=0',
+            \ })
+
+
+
+call ScaleFontSet('big', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('big', {
+            \ 'Size':  g:scaleFontSize  + 2,
+            \ 'Width': g:scaleFontWidth + 1,
+            \ 'Lines': 0,
+            \ 'Cols':  0,
+            \ })
+
+call ScaleFontSet('bigger', copy(ScaleFontGet('big')))
+call ScaleFontSet('bigger', {'MaintainFrameSize': 0})
+
+call ScaleFontSet('bigMax', copy(ScaleFontGet('big')))
+call ScaleFontSet('bigMax', {
+            \ 'Lines': -1,
+            \ 'Cols': -1,
+            \ })
+
+
+
+call ScaleFontSet('large', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('large', {
+            \ 'Size':  g:scaleFontSize  + 4,
+            \ 'Width': g:scaleFontWidth + 3,
+            \ 'Lines': 0,
+            \ 'Cols':  0,
+            \ })
+
+call ScaleFontSet('largeMax', copy(ScaleFontGet('large')))
+call ScaleFontSet('largeMax', {
+            \ 'Lines': -1,
+            \ 'Cols': -1,
+            \ })
+
+call ScaleFontSet('largeFull', copy(ScaleFontGet('largeMax')))
+call ScaleFontSet('largeFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+
+call ScaleFontSet('largeSingle', copy(ScaleFontGet('largeMax')))
+call ScaleFontSet('largeSingle', {'Exec': ScaleFontGet('NormalSingle', 'Exec')})
+
+
+
+call ScaleFontSet('Large', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('Large', {
+            \ 'Size':  g:scaleFontSize  + 6,
+            \ 'Width': g:scaleFontWidth + 5,
+            \ 'Lines': 0,
+            \ 'Cols':  0,
+            \ })
+
+call ScaleFontSet('LargeMax', copy(ScaleFontGet('Large')))
+call ScaleFontSet('LargeMax', {
+            \ 'Lines': -1,
+            \ 'Cols': -1,
+            \ })
+
+call ScaleFontSet('LargeFull', copy(ScaleFontGet('LargeMax')))
+call ScaleFontSet('LargeFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+
+
+
+call ScaleFontSet('Small', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('Small', {
+            \ 'Size':  g:scaleFontSize  - 1,
+            \ 'Width': g:scaleFontWidth - 1,
+            \ 'Lines': 0,
+            \ 'Cols':  0,
+            \ })
+
+call ScaleFontSet('SmallMax', copy(ScaleFontGet('Small')))
+call ScaleFontSet('SmallMax', {
+            \ 'Lines': -1,
+            \ 'Cols': -1,
+            \ })
+
+call ScaleFontSet('SmallFull', copy(ScaleFontGet('SmallMax')))
+call ScaleFontSet('SmallFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+
+
+
+call ScaleFontSet('small', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('small', {
+            \ 'Size':  g:scaleFontSize  - 2,
+            \ 'Width': g:scaleFontWidth - 1,
+            \ 'Lines': 0,
+            \ 'Cols':  0,
+            \ })
+
+call ScaleFontSet('smallMax', copy(ScaleFontGet('small')))
+call ScaleFontSet('smallMax', {
+            \ 'Lines': -1,
+            \ 'Cols': -1,
+            \ })
+
+call ScaleFontSet('smallFull', copy(ScaleFontGet('smallMax')))
+call ScaleFontSet('smallFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+
+
+
+call ScaleFontSet('tiny', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('tiny', {
+            \ 'Size':  g:scaleFontSize  - 4,
+            \ 'Width': g:scaleFontWidth - 3,
+            \ 'Lines': 0,
+            \ 'Cols':  0,
+            \ })
+
+call ScaleFontSet('tinyMax', copy(ScaleFontGet('tiny')))
+call ScaleFontSet('tinyMax', {
+            \ 'Lines': -1,
+            \ 'Cols': -1,
+            \ })
+
+call ScaleFontSet('tinyFull', copy(ScaleFontGet('tinyMax')))
+call ScaleFontSet('tinyFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+
+
+
+" Functions {{{1
 
 let s:scaleFontMode        = ""
 let s:scaleFontCols        = 0
@@ -191,13 +286,16 @@ let s:scaleFontScaledSize  = 0
 let s:scaleFontScaledWidth = 0
 let s:scaleMenuBuilt       = 0
 
-if !exists("*ScaleFontMaximizeWindow")
+if !exists("*ScaleFontMaximizeWindow") "{{{2
     if has("win16") || has("win32") || has("win64")
-        fun! ScaleFontMaximizeWindow()
+        fun! ScaleFontMaximizeWindow() "{{{3
             simalt ~x
         endf
     else
-        fun! ScaleFontMaximizeWindow()
+        " I took the following function from a posting on the vim mailing 
+        " list. I think the original poster was AJ Mechelynck though I'm not 
+        " sure about this.
+        fun! ScaleFontMaximizeWindow() "{{{3
             " echom "ScaleFont: Don't know how to maximize windows. Please redefine 'ScaleFontMaximizeWindow()'."
             if exists(":winpos") == 2
                 winpos 0 0
@@ -207,12 +305,12 @@ if !exists("*ScaleFontMaximizeWindow")
     endif
 endif
 
-fun! <SID>ScaleFontSetScaledWidthSize(...)
+fun! s:ScaleFontSetScaledWidthSize(...) "{{{3
     let s:scaleFontScaledSize  = a:0 >= 1 ? a:1 : g:scaleFontSize * 100
     let s:scaleFontScaledWidth = a:0 >= 2 ? a:2 : g:scaleFontWidth * 100
 endf
 
-fun! ScaleFontSetLinesCols(setIt, lines, cols, ...)
+fun! s:ScaleFontSetLinesCols(setIt, lines, cols, ...) "{{{3
     let s = a:0 >= 1 ? a:1 : g:scaleFontSize
     let w = a:0 >= 2 ? a:2 : g:scaleFontWidth
     let s:scaleFontLines = a:lines * (s + &linespace)
@@ -223,43 +321,59 @@ fun! ScaleFontSetLinesCols(setIt, lines, cols, ...)
     endif
 endf
 
-command! -nargs=* ScaleFontSetLinesCols call ScaleFontSetLinesCols(1, <f-args>)
+" s:ScaleFontSetSize(mode, ?size, ?width)
+fun! s:ScaleFontSetSize(mode, ...) "{{{3
+    if a:mode == ''
+        let size  = a:1
+        let width = a:2
+        let mfs   = 1
+    else
+        let size  = ScaleFontGet(a:mode, 'Size')
+        let width = ScaleFontGet(a:mode, 'Width')
+        let mfs   = ScaleFontGet(a:mode, 'MaintainFrameSize')
+    endif
 
-" ScaleFontSetSize(size, width, ?mode="")
-fun! ScaleFontSetSize(size, width, ...)
-    let mode = a:0 >= 1 ? a:1 : ""
-
-    if s:scaleFontMode == "0" || s:scaleFontMode == "Normal"
+    if s:scaleFontMode == '0' || s:scaleFontMode == 'Normal'
         let g:scaleFontWinX_0  = getwinposx()
         let g:scaleFontWinY_0  = getwinposy()
     endif
 
-    let incr = g:scaleFontSize < a:size
-    let g:scaleFontSize  = a:size
-    let g:scaleFontWidth = a:width
+    let incr = g:scaleFontSize < size
+    let g:scaleFontSize  = size
+    let g:scaleFontWidth = width
     
-    let fnt = mode != "" ? g:scaleFont_{mode} : g:scaleFont
-    let fnt = substitute(fnt, '\V#{SIZE}',  g:scaleFontSize,  "g")
-    let fnt = substitute(fnt, '\V#{WIDTH}', g:scaleFontWidth, "g")
+    let fnt = a:mode != '' ? ScaleFontGet(a:mode, 'Font') : g:scaleFont
+    let fnt = substitute(fnt, '\V#{SIZE}',  g:scaleFontSize,  'g')
+    let fnt = substitute(fnt, '\V#{WIDTH}', g:scaleFontWidth, 'g')
     
     if s:scaleFontCols == 0
-        call ScaleFontSetLinesCols(0, &lines, &co)
+        call s:ScaleFontSetLinesCols(0, &lines, &co)
     endif
-    if mode != ""
-        if exists("g:scaleFontExec_". mode)
-            exec g:scaleFontExec_{mode}
-        else
-            exec g:scaleFontExec_0
+    if a:mode != ''
+        let evalexec = ScaleFontGet(a:mode, 'Exec')
+        " TLogVAR evalexec
+        if g:scaleFontAlwaysResetGuioptions || empty(evalexec)
+            call s:BufExec(ScaleFontGet(0, 'Exec'))
         endif
-        call <SID>ScaleFontSetScaledWidthSize()
+        if !empty(evalexec)
+            call s:BufExec(evalexec)
+        endif
+        if mfs
+            call s:ScaleFontSetScaledWidthSize()
+        endif
     endif
 
-    if mode != "" && exists("g:scaleFontLines_". mode) && exists("g:scaleFontCols_". mode)
-        let cols  = g:scaleFontCols_{mode}
-        let lines = g:scaleFontLines_{mode}
+    let cols  = ScaleFontGet(a:mode, 'Cols')
+    let lines = ScaleFontGet(a:mode, 'Lines')
+    " TLogVAR cols, lines
+    if a:mode != '' && cols && lines
+        " TLogVAR &guifont
         if cols == 0 || lines == 0
-            call ScaleFontSetLinesCols(0, g:scaleFontLines_0, g:scaleFontCols_0, 
-                        \ g:scaleFontSize_0, g:scaleFontWidth_0)
+            call s:ScaleFontSetLinesCols(0,
+                        \ ScaleFontGet(0, 'Lines'),
+                        \ ScaleFontGet(0, 'Cols'),
+                        \ ScaleFontGet(0, 'Size'),
+                        \ ScaleFontGet(0, 'Width'))
             let nco = s:scaleFontCols / g:scaleFontWidth
             let nli = s:scaleFontLines / (g:scaleFontSize + &linespace)
         elseif cols == -1 || lines == -1
@@ -270,10 +384,13 @@ fun! ScaleFontSetSize(size, width, ...)
             let nco=cols
             let nli=lines
         endif
-    else
+    elseif mfs
         let nco = s:scaleFontCols / g:scaleFontWidth
         let nli = s:scaleFontLines / (g:scaleFontSize + &linespace)
+    else
+        let nco = 0
     endif
+    " TLogVAR nco, nli, fnt
     if nco > 0
         if incr
             let &co=nco
@@ -284,76 +401,60 @@ fun! ScaleFontSetSize(size, width, ...)
             let &co=nco
             let &lines=nli
         endif
+    elseif !mfs
+        let &guifont=fnt
     endif
-    if mode != "" 
-        let s:scaleFontMode = mode
-        call ScaleFontSetLinesCols(0, &lines, &co)
-    endif
-    if mode != "" && exists("g:scaleFontWinX_". mode) && exists("g:scaleFontWinY_". mode)
-        let winx = g:scaleFontWinX_{mode}
-        if exists("g:scaleFontWinX_".winx)
-            let winx = g:scaleFontWinX_{winx}
-        endif
-        let winy = g:scaleFontWinY_{mode}
-        if exists("g:scaleFontWinY_".winy)
-            let winy = g:scaleFontWinY_{winy}
-        endif
-        if winx != "" && winy != ""
+
+    if a:mode != ''
+        let s:scaleFontMode = a:mode
+        call s:ScaleFontSetLinesCols(0, &lines, &co)
+
+        let winx = ScaleFontGet(a:mode, 'WinX')
+        let winy = ScaleFontGet(a:mode, 'WinY')
+        " TLogVAR winx, winy
+        if winx && winy
+            let winx = ScaleFontGet(winx, 'WinX', winx)
+            let winy = ScaleFontGet(winy, 'WinY', winy)
+            " TLogVAR winx, winy
             if winx =~ '^[1-9][0-9]*$' && winy =~ '^[1-9][0-9]*$'
                 exec 'winpos '. winx ." ". winy
+            elseif winx != -1 && winy != -1
+                " echoerr "ScaleFont: Bad mode definition: ". a:mode ." winx=". winx ." winy=". winy
+                echoerr "ScaleFont: Can't set window position for ". a:mode .": X=". winx ." Y=". winy
             endif
-        else
-            echoerr "ScaleFont: Can't set window position for ". mode .": X=". winx ." Y=". winy
         endif
     endif
 endf
 
-fun! ScaleFontCompleteModes(ArgLead, CmdLine, CursorPos)
+function! s:BufExec(exec) "{{{3
+    let bn = bufnr('%')
+    " TLogVAR bn, a:exec
+    exec 'bufdo '. a:exec
+    exec 'buffer! '. bn
+endf
+
+fun! s:ScaleFontCompleteModes(ArgLead, CmdLine, CursorPos) "{{{3
+    let modes = join(keys(g:scaleFontConf), "\n")
     if exists("g:scaleFontModes")
-        return g:scaleFontModes ."\n". s:scaleFontModes
+        return g:scaleFontModes ."\n". modes
     else
-        return s:scaleFontModes
+        return modes
     endif
 endf
 
-command! -nargs=1 -complete=custom,ScaleFontCompleteModes ScaleFontMode 
-            \ call ScaleFontSetSize(g:scaleFontSize_{<q-args>}, 
-            \ g:scaleFontWidth_{<q-args>}, <q-args>)
-
-command! -nargs=1 -complete=custom,ScaleFontCompleteModes ScaleFont 
-            \ call ScaleFontSetSize(g:scaleFontSize_{<q-args>}, 
-            \ g:scaleFontWidth_{<q-args>}, <q-args>)
-
-command! ScaleFontInfo echom "Font: ". g:scaleFontWidth ."x". g:scaleFontSize 
-            \ .", window: ". &co ."x". &lines
-
-" command! ScaleFontDebugInfo echom "Font: ". g:scaleFontWidth ."x". g:scaleFontSize 
-            " \ ." (". s:scaleFontScaledWidth ."x". s:scaleFontScaledSize .")"
-            " \ .", window: ". &co ."x". &lines
-            " \ ." (". s:scaleFontCols ."x". s:scaleFontLines .")"
-
-fun! ScaleFontBuildMenu()
-    if g:scaleFontMenuPrefix != ""
+fun! ScaleFontBuildMenu() "{{{3
+    if g:scaleFontMenu != ''
         if s:scaleMenuBuilt
-            exec "aunmenu ". g:scaleFontMenuPrefix ."ScaleFont"
+            exec 'aunmenu '. g:scaleFontMenu
         endif
-        let i = 0
-        let m = ScaleFontCompleteModes("", "", "") . "\n"
-        while 1
-            let e = matchend(m, '.\{-}\n', i)
-            if e == -1
-                break
-            else
-                let t = strpart(m, i, e - i - 1)
-                exec "amenu ". g:scaleFontMenuPrefix ."ScaleFont.". t ." :ScaleFontMode ". t ."<cr>"
-                let i = e
-            end
-        endwh
+        for t in sort(split(s:ScaleFontCompleteModes('', '', ''), '\n'))
+            exec 'amenu '. g:scaleFontMenu .'.'. t .' :ScaleFontMode '. t .'<cr>'
+        endfor
         let s:scaleMenuBuilt = 1
     endif
 endf
             
-fun! <SID>ScaleFontShift(val)
+fun! s:ScaleFontShift(val) "{{{3
     let rv = a:val / 100
     let rest = a:val % 100
     if rest > 50
@@ -363,7 +464,7 @@ fun! <SID>ScaleFontShift(val)
     end
 endf
 
-fun! ScaleFont(delta)
+fun! s:ScaleFont(delta) "{{{3
     if s:scaleFontScaledSize == 0 || s:scaleFontScaledWidth == 0
         let nfs = (g:scaleFontSize + a:delta) * 100
         let r   = 100 * g:scaleFontWidth / g:scaleFontSize
@@ -373,21 +474,42 @@ fun! ScaleFont(delta)
         let r   = 100 * s:scaleFontScaledWidth / s:scaleFontScaledSize
         let nfw = s:scaleFontScaledWidth + (a:delta * r)
     endif
-    call <SID>ScaleFontSetScaledWidthSize(nfs, nfw)
-    let s = <SID>ScaleFontShift(nfs)
-    let w = <SID>ScaleFontShift(nfw)
-    call ScaleFontSetSize(s, w)
+    call s:ScaleFontSetScaledWidthSize(nfs, nfw)
+    let s = s:ScaleFontShift(nfs)
+    let w = s:ScaleFontShift(nfw)
+    call s:ScaleFontSetSize('', s, w)
     ScaleFontInfo
 endf
 
-command! ScaleFontBigger  :call ScaleFont(1)
-command! ScaleFontSmaller :call ScaleFont(-1)
 
-if !exists("g:scaleFontDontSetOnStartup")
-    call ScaleFontSetSize(g:scaleFontSize, g:scaleFontWidth, "Normal")
+
+" Commands {{{1
+
+command! -nargs=* ScaleFontSetLinesCols call s:ScaleFontSetLinesCols(1, <f-args>)
+
+command! -nargs=1 -complete=custom,s:ScaleFontCompleteModes ScaleFontMode 
+            \ call s:ScaleFontSetSize(<q-args>)
+
+command! -nargs=1 -complete=custom,s:ScaleFontCompleteModes ScaleFont 
+            \ call s:ScaleFontSetSize(<q-args>)
+
+command! ScaleFontInfo echom "Font: ". g:scaleFontWidth ."x". g:scaleFontSize 
+            \ .", window: ". &co ."x". &lines
+
+command! ScaleFontBigger  :call s:ScaleFont(1)
+command! ScaleFontSmaller :call s:ScaleFont(-1)
+
+
+
+" Initialization {{{1
+
+if !exists("g:scaleFontDontSetOnStartup") "{{{2
+    call s:ScaleFontSetSize("Normal")
 endif
 
 call ScaleFontBuildMenu()
+
+
 
 finish "{{{1
 _______________________________________________________________________
@@ -415,4 +537,16 @@ for NormalFull). If this variable isn't set, the variable g:scaleFontExec_0
 will be executed that resets the guioptions to its initial value.  
 ScaleFontMaximizeWindow() is defined for OS other than Windows too (kind of). 
 Build modes menu (see g:scaleFontMenuPrefix).
+
+1.2
+- On mode changes, always evaluate g:scaleFontExec__0 unless 
+g:scaleFontAlwaysResetGuioptions is 0.
+
+1.3
+- Error when switching back to Normal.
+- Partial rewrite for vim7.0
+- Default configuration is now done with a dictionary.
+- g:scaleFontMenuPrefix was replaced with g:scaleFontMenu
+- Load only in gui
+- s:ScaleFontSetSize(mode, ...): Arguments have changed
 

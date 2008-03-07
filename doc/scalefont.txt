@@ -7,130 +7,126 @@ appropriate values in order to achieve this goal. You can define modes to
 quickly switch between your favourite gui configuration: fonts, window 
 position and size, guioption settings etc.
 
-You have to set g:scaleFontSize and g:scaleFont before using this plugin. It 
-might also be necessary to check whether the ScaleFontMaximizeWindow() 
-function is functional on your system.
-
 
 Install~
-It is important to correctly configure the plugin (see #3) because it will set 
+
+It is important to correctly configure the plugin because it will set 
 the font and the window size when being loaded unless the 
 g:scaleFontDontSetOnStartup variable was defined.
 
-#1
-Extract scalefont.zip to your local vimfiles directory (see also 
-|add-global-plugin|) so that you get: >
+Edit the vba file and type: >
 
-Linux etc.: >
-    $HOME/.vim/
-Windows: >
-    .../vimfiles/
+    :so %
 
-        doc/  etc/ plugin/
+<   See :help vimball for details. If you have difficulties or use vim 7.0, 
+    please make sure, you have the current version of vimball
+    (vimscript #1502) installed.
 
-#2
-Then run :helptags on the doc subdirectory.
+Edit |vimrc|:
 
-#3
-Add the following settings to your |vimrc| file:
+    Set g:scaleFontSize, g:scaleFontWidth, and g:scaleFont according to your 
+    likings. "#{SIZE}" and "#{WIDTH}" will be replaced with the appropriate 
+    values. On non-Windows systems you also have to define 
+    ScaleFontMaximizeWindow().
 
-Set g:scaleFontSize, g:scaleFontWidth, and g:scaleFont according to your 
-likings. "#{SIZE}" and "#{WIDTH}" will be replaced with the appropriate 
-values. On non-Windows systems you also have to define 
-ScaleFontMaximizeWindow().
+    Examples: >
 
-Examples: >
+        let g:scaleFontSize  = 11
+        let g:scaleFontWidth = 8
+      
+<   Unix: >
 
-    let g:scaleFontSize  = 11
-    let g:scaleFontWidth = 8
-  
-Unix: >
-    let g:scaleFont = "-misc-fixed-medium-r-semicondensed-*-#{SIZE}-120-*-*-c-*-iso8859-15"
+        let g:scaleFont = "-misc-fixed-medium-r-semicondensed-*-#{SIZE}-120-*-*-c-*-iso8859-15"
 
-Windows: >
-    let g:scaleFont = "Lucida_Console:h#{SIZE}:cANSI""
+<   Windows: >
 
-You could also add something like this: >
+        let g:scaleFont = "Lucida_Console:h#{SIZE}:cANSI""
 
-    amenu &View.-SepViewScaleFont- :
-    amenu &View.Font\ Size:\ &+ :ScaleFontBigger<cr>
-    amenu &View.Font\ Size:\ &- :ScaleFontSmaller<cr>
+Check if ScaleFontMaximizeWindow() function is functional on your 
+system. If not, redefine the function in |vimrc|.
 
-#4
 Restart vim.
 
 
-Uninstall~
-If you use the bash shell or similar, you can uninstall scalefont using these 
-commands: >
-
-    cd $HOME/.vim/
-    rm -i `cat etc/scalefont.lst`
-
-
-Usage~
-The :ScaleFontBigger and :ScaleFontSmaller give you a user experience as some 
-might know it from using a Psion palmtop. For other purposes than shifting the 
-font size, you probably want to define a mode (see below) and the set this 
-mode by calling the :ScaleFont command.
-
-
 Commands~
-:ScaleFontBigger
-:ScaleFontSmaller
-:ScaleFont MODE
-:ScaleFontMode MODE
-:ScaleFontSetLinesCols LINES COLS
+
+    :ScaleFontBigger
+        Increase the font size while maintaining the size of the GUI 
+        frame.
+
+    :ScaleFontSmaller
+        Decrease the font size while maintaining the size of the GUI 
+        frame.
+
+    :ScaleFont MODE
+        Select a mode (see below).
+
+    :ScaleFontMode MODE
+        (obsolete, use :ScaleFont instead)
+
+    :ScaleFontSetLinesCols LINES COLS
+        Set 'columns' and 'lines' for use in conjunction with 
+        :ScaleFontBigger and :ScaleFontSmaller.
+
 
 Functions~
-ScaleFont(delta)
-ScaleFontSetSize(size, width)
-ScaleFontSetLinesCols(setIt, lines, cols)
-ScaleFontMaximizeWindow()
-    - on non-Windows systems this one should be re-defined by the user
-ScaleFontBuildMenu()
-ScaleFontSaveOptions(...)
-    - can be used to save the default values for vim options in 
-      g:scaleFontExec_0
+
+    ScaleFontMaximizeWindow()
+        - on non-Windows systems this one should be re-defined by the user
+    ScaleFontBuildMenu()
+    ScaleFontSaveOptions(...)
+        - can be used to save the default values for vim options in 
+          g:scaleFontExec_0
+
 
 Variables~
-g:scaleFontSize
-g:scaleFontWidth
-g:scaleFont
-g:scaleFontMenuPrefix
-    - if set to "", no menu will be built
+
+    g:scaleFont
+        Default font name. Must be set in |vimrc|.
+
+    g:scaleFontSize
+        Default font size. Must be set in |vimrc|.
+
+    g:scaleFontWidth
+        Default font width. Must be set in |vimrc|.
+
+    g:scaleFontMenu
+        If set to "", no menu will be built.
+
 
                                                     *scalefont-modes*
 Modes~
-For each mode, you have to define these variables:
 
-    g:scaleFontSize_{MODE}  :: the font size
-    g:scaleFontWidth_{MODE} :: the font width
-    g:scaleFont_{MODE}      :: the font
+For each mode, you have to define a dictionary with these fields:
 
-and __optionally__:
+    Size  :: the font size
+    Width :: the font width
+    Font  :: the font
 
-    g:scaleFontLines_{MODE} :: the number of lines for this mode (see 'lines')
-    g:scaleFontCols_{MODE}  :: the number of columns for this mode (see 'co')
-    g:scaleFontWinX_{MODE}  :: either a number (argument to |:winpos|) or the 
+Optional fields:
+
+    Lines :: the number of lines for this mode (see 'lines')
+    Cols  :: the number of columns for this mode (see 'co')
+    WinX  :: either a number (argument to |:winpos|) or the 
       name of a mode the WinX position of which will be used instead (0 to 
       reset the position to the startup value)
-    g:scaleFontWinY_{MODE}  :: same as above
-    g:scaleFontExec_{MODE}  :: Execute some vim code after switching modes 
+    WinY  :: same as above
+    Exec  :: Execute some vim code after switching modes 
       (e.g., for switching to a full screen mode with out menu, toolbar, and 
       scrollbars).
 
-If either g:scaleFontLines_{MODE} or g:scaleFontCols_{MODE} is -1, the window 
-will be maximized.
+This can best be done by copying the configuration of another mode: >
 
-If either g:scaleFontLines_{MODE} or g:scaleFontCols_{MODE} is 0, the window 
-will be reset to the orignal geometry.
+    call ScaleFontSet('NormalWide', copy(ScaleFontGet('Normal')))
+    call ScaleFontSet('NormalWide', {
+            \ 'Lines': &lines / 2,
+            \ 'Cols': &co * 2,
+            \ })
 
-User defined modes should be listed in g:scaleFontModes, e.g. >
+If either Lines or Cols is -1, the window will be maximized. If either 
+field is 0, the window will be reset to the orignal geometry.
 
-    let g:scaleFontModes = "mode1\nmode2"
-
-Predefined modes (g:scaleFontWidth_{MODE} might require some adjustments):
+Predefined modes:
 
     Normal     :: standard mode
     NormalWide, NormalWideTop      :: a wide but "short" window (at the top)
