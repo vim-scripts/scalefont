@@ -1,17 +1,17 @@
 " vim: ff=unix
 " scalefont.vim -- Change the font size while maintaining the window geometry
-" @Author:      Thomas Link (micathom AT gmail com)
+" @Author:      Tom Link (micathom AT gmail com)
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
 " @Created:     18-Mai-2004.
-" @Last Change: 2008-03-07.
-" @Revision:    1.2.230
+" @Last Change: 2009-02-19.
+" @Revision:    277
 " 
 " GetLatestVimScripts: 1030 1 scalefont.vim
 
 if &cp || exists("loaded_scalefont") || !has("gui_running") "{{{2
     finish
 endif
-let loaded_scalefont = 102
+let loaded_scalefont = 104
 
 
 " Configuration {{{1
@@ -100,7 +100,7 @@ let g:scaleFontCols_0  = &co
 let g:scaleFontWinX_0  = -1
 let g:scaleFontWinY_0  = -1
 " if !exists("g:scaleFontExec_0") | let g:scaleFontExec_0 = 'set guioptions='. s:scaleFontGuioptions .'| set laststatus='. s:lastStatus | endif
-if !exists("g:scaleFontExec_0") | let g:scaleFontExec_0 = ScaleFontSaveOptions('guioptions', 'laststatus', 'fdc') | endif "{{{2
+if !exists("g:scaleFontExec_0") | let g:scaleFontExec_0 = ScaleFontSaveOptions('guioptions', 'ruler', 'laststatus', 'fdc') | endif "{{{2
 
 
 
@@ -115,50 +115,55 @@ call ScaleFontSet('Normal', {
             \ 'WinX': 0,
             \ 'WinY': 0,
             \ 'MaintainFrameSize': 1,
+            \ 'Exec': 'set linespace='. &linespace,
+            \ 'BufExec': '',
+            \ 'WinExec': '',
             \ })
 
-call ScaleFontSet('NormalWide', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('NormalWide', deepcopy(ScaleFontGet('Normal')))
 call ScaleFontSet('NormalWide', {
             \ 'Lines': &lines / 2,
             \ 'Cols': &co * 2,
             \ })
 
-call ScaleFontSet('NormalWideTop', copy(ScaleFontGet('NormalWide')))
+call ScaleFontSet('NormalWideTop', deepcopy(ScaleFontGet('NormalWide')))
 call ScaleFontSet('NormalWide', {
             \ 'WinX': 1,
             \ 'WinY': 1,
             \ })
 
-call ScaleFontSet('NormalNarrow', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('NormalNarrow', deepcopy(ScaleFontGet('Normal')))
 call ScaleFontSet('NormalNarrow', {
             \ 'Cols': &co / 2,
             \ })
 
-call ScaleFontSet('NormalNarrowLeft', copy(ScaleFontGet('NormalNarrow')))
+call ScaleFontSet('NormalNarrowLeft', deepcopy(ScaleFontGet('NormalNarrow')))
 call ScaleFontSet('NormalNarrowLeft', {
             \ 'WinX': 1,
             \ 'WinY': 1,
             \ })
 
-call ScaleFontSet('NormalMax', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('NormalMax', deepcopy(ScaleFontGet('Normal')))
 call ScaleFontSet('NormalMax', {
             \ 'Lines': -1,
             \ 'Cols': -1,
             \ })
 
-call ScaleFontSet('NormalFull', copy(ScaleFontGet('NormalMax')))
+call ScaleFontSet('NormalFull', deepcopy(ScaleFontGet('NormalMax')))
 call ScaleFontSet('NormalFull', {
-            \ 'Exec': 'let &guioptions=substitute(&guioptions, "\\C[mrlRLbT]", "", "g")|set fdc=0|set laststatus=0',
+            \ 'Exec': 'let &guioptions=substitute(&guioptions, "\\C[mrlRLbT]", "", "g")|set laststatus=0 ruler |'. ScaleFontGet('Normal', 'Exec'),
+            \ 'WinExec': 'set fdc=0|'. ScaleFontGet('Normal', 'WinExec'),
             \ })
 
-call ScaleFontSet('NormalSingle', copy(ScaleFontGet('NormalMax')))
+call ScaleFontSet('NormalSingle', deepcopy(ScaleFontGet('NormalMax')))
 call ScaleFontSet('NormalSingle', {
-            \ 'Exec': 'let &guioptions=substitute(&guioptions, "\\C[rlRLbT]", "", "g")|set fdc=12|set laststatus=0',
+            \ 'Exec': 'let &guioptions=substitute(&guioptions, "\\C[rlmRLbT]", "", "g")|set laststatus=0|'. ScaleFontGet('Normal', 'Exec'),
+            \ 'WinExec': 'set fdc=12|'. ScaleFontGet('Normal', 'WinExec'),
             \ })
 
 
 
-call ScaleFontSet('big', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('big', deepcopy(ScaleFontGet('Normal')))
 call ScaleFontSet('big', {
             \ 'Size':  g:scaleFontSize  + 2,
             \ 'Width': g:scaleFontWidth + 1,
@@ -166,10 +171,10 @@ call ScaleFontSet('big', {
             \ 'Cols':  0,
             \ })
 
-call ScaleFontSet('bigger', copy(ScaleFontGet('big')))
+call ScaleFontSet('bigger', deepcopy(ScaleFontGet('big')))
 call ScaleFontSet('bigger', {'MaintainFrameSize': 0})
 
-call ScaleFontSet('bigMax', copy(ScaleFontGet('big')))
+call ScaleFontSet('bigMax', deepcopy(ScaleFontGet('big')))
 call ScaleFontSet('bigMax', {
             \ 'Lines': -1,
             \ 'Cols': -1,
@@ -177,29 +182,38 @@ call ScaleFontSet('bigMax', {
 
 
 
-call ScaleFontSet('large', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('large', deepcopy(ScaleFontGet('Normal')))
 call ScaleFontSet('large', {
             \ 'Size':  g:scaleFontSize  + 4,
             \ 'Width': g:scaleFontWidth + 3,
             \ 'Lines': 0,
             \ 'Cols':  0,
+            \ 'Exec': 'set linespace=9',
             \ })
 
-call ScaleFontSet('largeMax', copy(ScaleFontGet('large')))
+call ScaleFontSet('largeMax', deepcopy(ScaleFontGet('large')))
 call ScaleFontSet('largeMax', {
             \ 'Lines': -1,
             \ 'Cols': -1,
             \ })
 
-call ScaleFontSet('largeFull', copy(ScaleFontGet('largeMax')))
-call ScaleFontSet('largeFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+call ScaleFontSet('largeFull', deepcopy(ScaleFontGet('largeMax')))
+call ScaleFontSet('largeFull', {
+            \ 'Exec': ScaleFontGet('NormalFull', 'Exec'),
+            \ 'BufExec': ScaleFontGet('NormalFull', 'BufExec'),
+            \ 'WinExec': ScaleFontGet('NormalFull', 'WinExec'),
+            \ })
 
-call ScaleFontSet('largeSingle', copy(ScaleFontGet('largeMax')))
-call ScaleFontSet('largeSingle', {'Exec': ScaleFontGet('NormalSingle', 'Exec')})
+call ScaleFontSet('largeSingle', deepcopy(ScaleFontGet('largeMax')))
+call ScaleFontSet('largeSingle', {
+            \ 'Exec': ScaleFontGet('NormalSingle', 'Exec') .'|'. ScaleFontGet('large', 'Exec'),
+            \ 'BufExec': ScaleFontGet('NormalSingle', 'BufExec') .'|'. ScaleFontGet('large', 'BufExec'),
+            \ 'WinExec': ScaleFontGet('NormalSingle', 'WinExec') .'|'. ScaleFontGet('large', 'WinExec'),
+            \ })
 
 
 
-call ScaleFontSet('Large', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('Large', deepcopy(ScaleFontGet('Normal')))
 call ScaleFontSet('Large', {
             \ 'Size':  g:scaleFontSize  + 6,
             \ 'Width': g:scaleFontWidth + 5,
@@ -207,18 +221,22 @@ call ScaleFontSet('Large', {
             \ 'Cols':  0,
             \ })
 
-call ScaleFontSet('LargeMax', copy(ScaleFontGet('Large')))
+call ScaleFontSet('LargeMax', deepcopy(ScaleFontGet('Large')))
 call ScaleFontSet('LargeMax', {
             \ 'Lines': -1,
             \ 'Cols': -1,
             \ })
 
-call ScaleFontSet('LargeFull', copy(ScaleFontGet('LargeMax')))
-call ScaleFontSet('LargeFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+call ScaleFontSet('LargeFull', deepcopy(ScaleFontGet('LargeMax')))
+call ScaleFontSet('LargeFull', {
+            \ 'Exec': ScaleFontGet('NormalFull', 'Exec'),
+            \ 'BufExec': ScaleFontGet('NormalFull', 'BufExec'),
+            \ 'WinExec': ScaleFontGet('NormalFull', 'WinExec'),
+            \ })
 
 
 
-call ScaleFontSet('Small', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('Small', deepcopy(ScaleFontGet('Normal')))
 call ScaleFontSet('Small', {
             \ 'Size':  g:scaleFontSize  - 1,
             \ 'Width': g:scaleFontWidth - 1,
@@ -226,18 +244,22 @@ call ScaleFontSet('Small', {
             \ 'Cols':  0,
             \ })
 
-call ScaleFontSet('SmallMax', copy(ScaleFontGet('Small')))
+call ScaleFontSet('SmallMax', deepcopy(ScaleFontGet('Small')))
 call ScaleFontSet('SmallMax', {
             \ 'Lines': -1,
             \ 'Cols': -1,
             \ })
 
-call ScaleFontSet('SmallFull', copy(ScaleFontGet('SmallMax')))
-call ScaleFontSet('SmallFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+call ScaleFontSet('SmallFull', deepcopy(ScaleFontGet('SmallMax')))
+call ScaleFontSet('SmallFull', {
+            \ 'Exec': ScaleFontGet('NormalFull', 'Exec'),
+            \ 'BufExec': ScaleFontGet('NormalFull', 'BufExec'),
+            \ 'WinExec': ScaleFontGet('NormalFull', 'WinExec'),
+            \ })
 
 
 
-call ScaleFontSet('small', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('small', deepcopy(ScaleFontGet('Normal')))
 call ScaleFontSet('small', {
             \ 'Size':  g:scaleFontSize  - 2,
             \ 'Width': g:scaleFontWidth - 1,
@@ -245,18 +267,22 @@ call ScaleFontSet('small', {
             \ 'Cols':  0,
             \ })
 
-call ScaleFontSet('smallMax', copy(ScaleFontGet('small')))
+call ScaleFontSet('smallMax', deepcopy(ScaleFontGet('small')))
 call ScaleFontSet('smallMax', {
             \ 'Lines': -1,
             \ 'Cols': -1,
             \ })
 
-call ScaleFontSet('smallFull', copy(ScaleFontGet('smallMax')))
-call ScaleFontSet('smallFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+call ScaleFontSet('smallFull', deepcopy(ScaleFontGet('smallMax')))
+call ScaleFontSet('smallFull', {
+            \ 'Exec': ScaleFontGet('NormalFull', 'Exec'),
+            \ 'BufExec': ScaleFontGet('NormalFull', 'BufExec'),
+            \ 'WinExec': ScaleFontGet('NormalFull', 'WinExec'),
+            \ })
 
 
 
-call ScaleFontSet('tiny', copy(ScaleFontGet('Normal')))
+call ScaleFontSet('tiny', deepcopy(ScaleFontGet('Normal')))
 call ScaleFontSet('tiny', {
             \ 'Size':  g:scaleFontSize  - 4,
             \ 'Width': g:scaleFontWidth - 3,
@@ -264,20 +290,24 @@ call ScaleFontSet('tiny', {
             \ 'Cols':  0,
             \ })
 
-call ScaleFontSet('tinyMax', copy(ScaleFontGet('tiny')))
+call ScaleFontSet('tinyMax', deepcopy(ScaleFontGet('tiny')))
 call ScaleFontSet('tinyMax', {
             \ 'Lines': -1,
             \ 'Cols': -1,
             \ })
 
-call ScaleFontSet('tinyFull', copy(ScaleFontGet('tinyMax')))
-call ScaleFontSet('tinyFull', {'Exec': ScaleFontGet('NormalFull', 'Exec')})
+call ScaleFontSet('tinyFull', deepcopy(ScaleFontGet('tinyMax')))
+call ScaleFontSet('tinyFull', {
+            \ 'Exec': ScaleFontGet('NormalFull', 'Exec'),
+            \ 'BufExec': ScaleFontGet('NormalFull', 'BufExec'),
+            \ 'WinExec': ScaleFontGet('NormalFull', 'WinExec'),
+            \ })
 
 
 
 " Functions {{{1
 
-let s:scaleFontMode        = ""
+let s:scaleFontMode        = ''
 let s:scaleFontCols        = 0
 let s:scaleFontLines       = 0
 let s:scaleFontWinHeight   = 0
@@ -351,13 +381,21 @@ fun! s:ScaleFontSetSize(mode, ...) "{{{3
     endif
     if a:mode != ''
         let evalexec = ScaleFontGet(a:mode, 'Exec')
+        let bufexec  = ScaleFontGet(a:mode, 'BufExec')
+        let winexec  = ScaleFontGet(a:mode, 'WinExec')
         " TLogVAR evalexec
         if g:scaleFontAlwaysResetGuioptions || empty(evalexec)
-            call s:BufExec(ScaleFontGet(0, 'Exec'))
+            exec ScaleFontGet(0, 'Exec')
         endif
-        if !empty(evalexec)
-            call s:BufExec(evalexec)
+        if g:scaleFontAlwaysResetGuioptions || empty(bufexec)
+            call s:BufExec(ScaleFontGet(0, 'BufExec'))
         endif
+        if g:scaleFontAlwaysResetGuioptions || empty(winexec)
+            call s:BufExec(ScaleFontGet(0, 'WinExec'))
+        endif
+        exec evalexec
+        call s:BufExec(bufexec)
+        call s:WinExec(winexec)
         if mfs
             call s:ScaleFontSetScaledWidthSize()
         endif
@@ -424,13 +462,31 @@ fun! s:ScaleFontSetSize(mode, ...) "{{{3
             endif
         endif
     endif
+    redraw!
 endf
 
 function! s:BufExec(exec) "{{{3
-    let bn = bufnr('%')
-    " TLogVAR bn, a:exec
-    exec 'bufdo '. a:exec
-    exec 'buffer! '. bn
+    if a:exec =~ '[^|]'
+        let bn = bufnr('%')
+        " TLogVAR bn, a:exec
+        bufdo call s:BufDo(a:exec)
+        exec 'buffer! '. bn
+    endif
+endf
+
+function! s:BufDo(exec) "{{{3
+    if !empty(bufname('%'))
+        exec a:exec
+    endif
+endf
+
+function! s:WinExec(exec) "{{{3
+    if !empty(a:exec)
+        let wn = winnr()
+        " TLogVAR wn, a:exec
+        exec 'windo '. a:exec
+        exec wn .'wincmd w'
+    endif
 endf
 
 fun! s:ScaleFontCompleteModes(ArgLead, CmdLine, CursorPos) "{{{3
@@ -549,4 +605,7 @@ g:scaleFontAlwaysResetGuioptions is 0.
 - g:scaleFontMenuPrefix was replaced with g:scaleFontMenu
 - Load only in gui
 - s:ScaleFontSetSize(mode, ...): Arguments have changed
+
+1.4
+- BufExec & WinExec options.
 
